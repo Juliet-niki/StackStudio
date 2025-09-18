@@ -17,35 +17,43 @@ import {
 } from "../icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDropdown } from "../DropDown/DropDown";
 
 export default function NavBar() {
-  const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [displayMenu, setDisplayMenu] = useState(false);
   const pathname = usePathname();
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-        setDisplayMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (document.documentElement.classList.contains("dark")) {
+      setDarkMode(true);
+    } else {
+      setDarkMode(false);
+    }
   }, []);
+
+  const toggleTheme = () => {
+    setDarkMode((prev) => {
+      const newTheme = !prev;
+      document.documentElement.classList.toggle("dark", newTheme);
+      localStorage.setItem("theme", newTheme ? "dark" : "light");
+      return newTheme;
+    });
+  };
+  const profile = useDropdown<HTMLDivElement>();
+  const menu = useDropdown<HTMLDivElement>();
+
+  const { setOpen: setProfileOpen } = profile;
+  const { setOpen: setMenuOpen } = menu;
+
+  useEffect(() => {
+    setProfileOpen(false);
+    setMenuOpen(false);
+  }, [pathname, setProfileOpen, setMenuOpen]);
 
   return (
     <div className="sticky top-0 z-100 bg-background shadow-lg  text-text">
-      <nav className="flex items-center justify-between px-6 py-3">
+      <nav className="flex items-center justify-between px-6 py-4 sm:py-3">
         <div className="flex items-center gap-10">
           <Link href="/">
             <Image
@@ -62,17 +70,18 @@ export default function NavBar() {
           </Link>
 
           <div
-            onClick={() => setIsOpen(!isOpen)}
+            ref={profile.toggleRef}
+            onClick={() => profile.setOpen((prev) => !prev)}
             className="relative flex items-center gap-2 rounded-[22px] px-3 py-2 cursor-pointer bg-primaryBackground"
           >
             <div className="md:size-6 lg:size-8 rounded-full bg-radial-[at_50%_50%] from-purple-300 via-blue-400 to-indigo-900 to-90%"></div>
             <p className="text-xs md:text-sm">Johnson Alex</p>
             <AngleDownIcon className="w-5 h-5 fill-fill" />
           </div>
-          {isOpen && (
+          {profile.open && (
             <div
-              ref={dropdownRef}
-              className="absolute top-[70px] left-52 bg-primaryBackground  rounded-[18px] px-3 py-3 flex flex-col gap-1 text-xs md:text-sm text-text"
+              ref={profile.dropdownRef}
+              className="absolute top-[60px] sm:top-[50px] md:top-[60px] lg:top-[70px] left-44 sm:left-52 bg-primaryBackground  rounded-[18px] px-3 py-3 flex flex-col gap-1 text-xs md:text-sm text-text"
             >
               <Link
                 href="/profile"
@@ -80,15 +89,24 @@ export default function NavBar() {
               >
                 View profile
               </Link>
-              <p className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer">
+              <Link
+                href="/"
+                className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer"
+              >
                 Upgrade
-              </p>
-              <p className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer">
-                Logout
-              </p>
-              <p className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer">
+              </Link>
+              <Link
+                href="/"
+                className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer"
+              >
                 Settings
-              </p>
+              </Link>
+              <Link
+                href="/"
+                className="py-2 px-2 hover:bg-primaryHover rounded-[12px] cursor-pointer"
+              >
+                Logout
+              </Link>
             </div>
           )}
         </div>
@@ -133,10 +151,7 @@ export default function NavBar() {
             </Link>
           </div>
           <div
-            onClick={() => {
-              setDarkMode(!darkMode);
-              document.documentElement.classList.toggle("dark");
-            }}
+            onClick={toggleTheme}
             className="bg-primaryBackground hover:bg-primaryHover rounded-full px-1 py-1 flex items-center gap-2 cursor-pointer"
           >
             {darkMode ? (
@@ -151,14 +166,15 @@ export default function NavBar() {
           ></Link>
           {/* Mobile Nav */}
           <div
-            onClick={() => setDisplayMenu(!displayMenu)}
+            ref={menu.toggleRef}
+            onClick={() => menu.setOpen((prev) => !prev)}
             className="lg:hidden"
           >
             <MenuIcon className=" w-5 h-5 fill-fill cursor-pointer" />
-            {displayMenu && (
+            {menu.open && (
               <div
-                ref={dropdownRef}
-                className="absolute top-[75px] md:top-[80px] right-4 bg-primaryBackground rounded-[18px] w-[200px] px-2 pt-2 pb-10 flex flex-col gap-5 text-sm text-text shadow-xl"
+                ref={menu.dropdownRef}
+                className="absolute top-[60px] sm:top-[50px] md:top-[60px] lg:top-[70px] right-4 bg-primaryBackground rounded-[18px] w-[200px] px-2 pt-2 pb-10 flex flex-col gap-5 text-sm text-text shadow-xl"
               >
                 <div className="md:hidden flex flex-col gap-1">
                   {navMenu.map((menu) => (

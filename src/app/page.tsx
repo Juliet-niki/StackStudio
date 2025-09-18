@@ -59,7 +59,7 @@ export default function Home() {
               <div
                 key={index}
                 ref={itemRef}
-                className="relative h-[250px] sm:h-[300px] md:h-[400px] w-full md:w-[600px] lg:w-[800px] rounded-[16px] text-white flex-shrink-0 mr-3 overflow-hidden"
+                className="relative h-[250px] sm:h-[300px] md:h-[400px] w-full md:w-[600px] lg:w-[800px] rounded-[16px] text-white flex-shrink-0 mr-3 lg:mr-8 overflow-hidden"
               >
                 <div className="grid grid-cols-3 w-full h-full">
                   {product.images.map((image, index) => (
