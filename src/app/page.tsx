@@ -1,103 +1,280 @@
+"use client";
+
+import Generate from "@/components/Generate/Generate";
+import { AngleDownIcon } from "@/components/icons";
 import Image from "next/image";
+import { useRef, useEffect, useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const slides = [products[products.length - 1], ...products, products[0]];
+  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [itemWidth, setItemWidth] = useState(0);
+  const itemRef = useRef<HTMLDivElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    const updateWidth = () => {
+      if (itemRef.current) {
+        setItemWidth(itemRef.current.offsetWidth + 12);
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  const handleTransitionEnd = () => {
+    setIsTransitioning(false);
+    if (currentIndex === 0) {
+      setCurrentIndex(products.length);
+    } else if (currentIndex === slides.length - 1) {
+      setCurrentIndex(1);
+    }
+  };
+
+  const nextSlide = () => {
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  const prevSlide = () => {
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  };
+
+  return (
+    <div className="font-sans my-10 md:my-14">
+      <div>
+        <div className="relative w-full overflow-hidden">
+          <div
+            className={`flex ${
+              isTransitioning
+                ? "transition-transform duration-500 ease-in-out"
+                : ""
+            }`}
+            style={{ transform: `translateX(-${currentIndex * itemWidth}px)` }}
+            onTransitionEnd={handleTransitionEnd}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {slides.map((product, index) => (
+              <div
+                key={index}
+                ref={itemRef}
+                className="relative h-[250px] sm:h-[300px] md:h-[400px] w-full md:w-[600px] lg:w-[800px] rounded-[16px] text-white flex-shrink-0 mr-3"
+              >
+                <div className="grid grid-cols-3 w-full h-full">
+                  {product.images.map((image, index) => (
+                    <Image
+                      key={index}
+                      src={image}
+                      alt=""
+                      width={400}
+                      height={400}
+                      className={`object-cover h-full w-full ${
+                        index === 0 ? "rounded-l-[16px]" : ""
+                      } ${index === 2 ? "rounded-r-[16px]" : ""}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="absolute rounded-[16px] inset-0 flex flex-col p-5 md:p-8 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                  <h6 className="text-[8px] sm:text-[10px] md:text-xs">
+                    {product.title}
+                  </h6>
+                  <h1 className="text-[35px] sm:text-[60px] md:text-[70px] lg:text-[80px] font-bold text-center mt-8 sm:mt-10 md:mt-16">
+                    {product.name}
+                  </h1>
+                  <div className="mt-auto flex flex-col sm:flex-row justify-between items-end">
+                    <div className="w-full sm:w-[60%] lg:w-[50%]">
+                      <h2 className="text-[16px] sm:text-xl md:text-[22px] lg:text-2xl font-medium">
+                        {product.descriptionTitle}
+                      </h2>
+                      <p className="text-[10px] text-xs md:text-[13px] lg:text-sm mt-1 lg:mt-2">
+                        {product.description}
+                      </p>
+                    </div>
+                    <button className="bg-white h-fit font-semibold text-[10px] sm:text-xs md:text-[13px] lg:text-sm text-gray-900 hover:bg-white/80 px-4 py-2 rounded-4xl mt-1 sm:mt-0">
+                      {product.buttonText}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {/* Carousel Controls */}
+        <div className="flex items-center mt-3 relative">
+          <div className="flex gap-2 absolute bottom-[50%] translate-y-[50%] left-[12%] translate-x-[12%] sm:left-[30%] sm:translate-x-[30%] md:left-[35%] md:translate-x-[35%]  lg:left-[40%] lg:translate-x-[40%] ">
+            {products.map((_, index) => (
+              <div
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`w-[7px] h-[7px] rounded-full cursor-pointer ${
+                  index === currentIndex ? "bg-gray-800" : "bg-gray-400"
+                }`}
+              ></div>
+            ))}
+          </div>
+
+          <div className="flex gap-4 ml-auto">
+            <button
+              onClick={prevSlide}
+              className="bg-[#eeeeee] hover:bg-[#e9e9e9] h-8 w-8 rounded-full flex items-center justify-center"
+            >
+              <AngleDownIcon className="rotate-90 w-5 h-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="bg-[#eeeeee] hover:bg-[#e9e9e9] h-8 w-8 rounded-full flex items-center justify-center"
+            >
+              <AngleDownIcon className="rotate-270 w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <Generate />
     </div>
   );
 }
+
+const products = [
+  {
+    id: 1,
+    images: [
+      "/assets/images/model2.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model1.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+  {
+    id: 2,
+    images: [
+      "/assets/images/anime1.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model5.jpg",
+    ],
+    title: "Open Source MODEL",
+    name: "Open Source",
+    descriptionTitle: "Flux.1 Krea",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try Open Source",
+  },
+  {
+    id: 3,
+    images: [
+      "/assets/images/model2.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model1.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+  {
+    id: 4,
+    images: [
+      "/assets/images/anime1.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model5.jpg",
+    ],
+    title: "Open Source MODEL",
+    name: "Open Source",
+    descriptionTitle: "Flux.1 Krea",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try Open Source",
+  },
+  {
+    id: 5,
+    images: [
+      "/assets/images/model2.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model1.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+  {
+    id: 6,
+    images: [
+      "/assets/images/anime1.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model5.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+  {
+    id: 7,
+    images: [
+      "/assets/images/model2.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model1.jpg",
+    ],
+    title: "Open Source MODEL",
+    name: "Open Source",
+    descriptionTitle: "Flux.1 Krea",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try Open Source",
+  },
+  {
+    id: 8,
+    images: [
+      "/assets/images/anime1.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model5.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+  {
+    id: 9,
+    images: [
+      "/assets/images/model2.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model1.jpg",
+    ],
+    title: "Open Source MODEL",
+    name: "Open Source",
+    descriptionTitle: "Flux.1 Krea",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try Open Source",
+  },
+  {
+    id: 10,
+    images: [
+      "/assets/images/anime1.jpg",
+      "/assets/images/mount.jpg",
+      "/assets/images/model5.jpg",
+    ],
+    title: "NEW IMAGE MODEL",
+    name: "WAN 2.2",
+    descriptionTitle: "WAN 2.2 Image generation",
+    description:
+      "Generate complex images with the brand new and powerful WAN 2.2 model. Exceptional prompt adherence and ultrarealistic textures.",
+    buttonText: "Try WAN 2.2",
+  },
+];
