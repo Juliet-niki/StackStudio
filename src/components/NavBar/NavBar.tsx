@@ -45,7 +45,7 @@ export default function NavBar() {
 
   return (
     <div className="sticky top-0 z-100 bg-background shadow-lg  text-text">
-      <nav className="flex items-center justify-between px-6 py-3 sm:bg-blue-400 md:bg-red-400  lg:bg-yellow-400">
+      <nav className="flex items-center justify-between px-6 py-3">
         <div className="flex items-center gap-10">
           <Link href="/">
             <Image
